@@ -1,5 +1,4 @@
 from satellite.models import Satellite
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SatelliteSerializer
@@ -39,8 +38,8 @@ def satelliteUpdate(request, primaryKey):
 
     if serializer.is_valid():
        serializer.save()
-
-    return Response(serializer.data)
+       return Response(serializer.data)
+    return Response({"message": "Unable to update satellite"})
 
 @api_view(['DELETE'])
 def satelliteDelete(request, primaryKey):
