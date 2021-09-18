@@ -11,9 +11,12 @@ def apiOverview(response):
 
 @api_view(['GET'])
 def satelliteList(request):
-    satellites = Satellite.objects.all();
-    serializer = SatelliteSerializer(satellites, many=True);
-    return Response(serializer.data)
+    try: 
+        satellites = Satellite.objects.all();
+        serializer = SatelliteSerializer(satellites, many=True);
+        return Response(serializer.data, status=200)
+    except Satellite.DoesNotExist:
+        return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
 @api_view(['GET'])
 def satelliteDetail(request, primaryKey):
@@ -29,7 +32,8 @@ def satelliteCreate(request):
     serializer = SatelliteSerializer(data=request.data);
     if serializer.is_valid():
        serializer.save()
-    return Response(serializer.data)
+       return Response(serializer.data)
+    return Response({"message": "Unable to insert data into database"}, status=400)
 
 @api_view(['PUT'])
 def satelliteUpdate(request, primaryKey):
@@ -38,8 +42,8 @@ def satelliteUpdate(request, primaryKey):
 
     if serializer.is_valid():
        serializer.save()
-       return Response(serializer.data)
-    return Response({"message": "Unable to update satellite"})
+       return Response(serializer.data, status=200)
+    return Response({"message": "Unable to update satellite"}, status=405)
 
 @api_view(['DELETE'])
 def satelliteDelete(request, primaryKey):
