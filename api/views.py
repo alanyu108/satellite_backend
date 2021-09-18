@@ -7,7 +7,32 @@ from satellite.models import Satellite
 # Create your views here.
 @api_view(['GET'])
 def apiOverview(response):
-    return Response(data={'message': 'This is the satellite api route'})
+    data = {
+        'message': 'This is the satellite api route',
+        'routes': {
+            "/api/satellites/": {
+                'request-type': 'GET',
+                'description': "returns all satellies in the database",
+            },
+            "/api/satellite/:id": {
+                'request-type': 'GET',
+                'description': "returns a satellie in the database given its id",
+            },
+            "/api/satellite-create/": {
+                'request-type': 'POST',
+                'description': "adds a new satellite entry into the database",
+            },
+             "/api/satellite-update/:id": {
+                'request-type': 'PUT',
+                'description': "updates a satellite given its id",
+            },
+             "/api/satellite-delete/:id": {
+                'request-type': 'DELETE',
+                'description': "delete a satellite given its id",
+            },
+        }
+    }
+    return Response(data=data)
 
 @api_view(['GET'])
 def satelliteList(request):
