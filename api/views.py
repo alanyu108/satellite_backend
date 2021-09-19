@@ -12,21 +12,21 @@ def apiOverview(response):
         'routes': {
             "/api/satellites/": {
                 'request-type': 'GET',
-                'description': "returns all satellies in the database",
+                'description': "returns all satellites in the database",
             },
-            "/api/satellite/:id": {
+            "/api/satellite/:id/": {
                 'request-type': 'GET',
-                'description': "returns a satellie in the database given its id",
+                'description': "returns a satellite in the database given its id",
             },
             "/api/satellite-create/": {
                 'request-type': 'POST',
                 'description': "adds a new satellite entry into the database",
             },
-             "/api/satellite-update/:id": {
+             "/api/satellite-update/:id/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its id",
             },
-             "/api/satellite-delete/:id": {
+             "/api/satellite-delete/:id/": {
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its id",
             },
