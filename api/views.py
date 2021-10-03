@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SatelliteSerializer
 from satellite.models import Satellite
+from tletools import TLE
 
 # Create your views here.
 @api_view(['GET'])
@@ -39,7 +40,16 @@ def satelliteList(request):
     try: 
         satellites = Satellite.objects.all();
         serializer = SatelliteSerializer(satellites, many=True);
-        return Response(serializer.data, status=200)
+        satellite_list = [];
+        for satellite in serializer.data:
+            tle_data = TLE.from_lines(satellite["name"], satellite["tle_1"], satellite["tle_2"])
+            dict_tle_data = tle_data.asdict()
+            dict_tle_data["description"] = satellite["description"]
+            dict_tle_data["id"] = satellite["id"]
+            dict_tle_data["tle_1"] = satellite["tle_1"]
+            dict_tle_data["tle_2"] = satellite["tle_2"]
+            satellite_list.append(dict_tle_data)
+        return Response(satellite_list, status=200)
     except Satellite.DoesNotExist:
         return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
@@ -48,7 +58,13 @@ def satelliteDetail(request, primaryKey):
     try: 
         satellite = Satellite.objects.get(id=primaryKey);
         serializer = SatelliteSerializer(satellite, many=False);
-        return Response(serializer.data)
+        tle_data = TLE.from_lines(serializer.data["name"], serializer.data["tle_1"], serializer.data["tle_2"])
+        dict_tle_data = tle_data.asdict()
+        dict_tle_data["description"] = serializer.data["description"]
+        dict_tle_data["id"] = serializer.data["id"]
+        dict_tle_data["tle_1"] = serializer.data["tle_1"]
+        dict_tle_data["tle_2"] = serializer.data["tle_2"]
+        return Response(dict_tle_data, status=200)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
 
