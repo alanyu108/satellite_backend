@@ -11,23 +11,23 @@ def apiOverview(response):
     data = {
         'message': 'This is the satellite api route',
         'routes': {
-            "/api/satellites/": {
+            "satellites/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
             },
-            "/api/satellite/:id/": {
+            "satellite/:id/": {
                 'request-type': 'GET',
                 'description': "returns a satellite in the database given its id",
             },
-            "/api/satellite-create/": {
+            "satellite-create/": {
                 'request-type': 'POST',
                 'description': "adds a new satellite entry into the database",
             },
-             "/api/satellite-update/:id/": {
+             "satellite-update/:id/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its id",
             },
-             "/api/satellite-delete/:id/": {
+             "satellite-delete/:id/": {
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its id",
             },
