@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'alanyu108-satellite-backend.herokuapp.com/',
+    'alanyu108-satellite-backend.herokuapp.com',
     '127.0.0.1',
 ] 
 
