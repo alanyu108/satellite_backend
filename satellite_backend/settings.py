@@ -30,7 +30,27 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG") == "True"
+if os.getenv("DEBUG") == "True":
+    DEBUG = True
+else:
+    DEBUG = False
+
+#enables django rest framework browserable interface only in dev
+if DEBUG == "True":
+    REST_FRAMEWORK = {
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',
+            'rest_framework.renderers.BrowsableAPIRenderer',
+        )
+    }
+else:
+    REST_FRAMEWORK = {
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',
+        )
+    }
+    
+
 
 ALLOWED_HOSTS = [
     'alanyu108-satellite-backend.herokuapp.com',
