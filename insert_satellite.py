@@ -3,7 +3,7 @@ import json
 
 filename = "C:\\Users\\Alan\\Documents\\django-project\\backend\\satellite_backend\\data\\active.txt"
 line_number = 0;
-min_line = 3;
+min_line = 0;
 max_line = 22;
 
 empty = {}
@@ -56,5 +56,5 @@ for element in empty_list:
         url = "http://127.0.0.1:8000/api/satellite-create/"
         headers = {'Content-type': 'application/json'}
         r = requests.post(url, data=json.dumps(data), headers=headers)
-        print(r.content)
+        print(r)
        
