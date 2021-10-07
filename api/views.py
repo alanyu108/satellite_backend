@@ -4,6 +4,36 @@ from rest_framework.response import Response
 from .serializers import SatelliteSerializer
 from satellite.models import Satellite
 from tletools import TLE
+import logging
+import json
+
+logger = logging.getLogger("mylogger")
+
+def parseTLE(obj):
+    tle_1 = obj['tle_1']
+    tle_2 = obj["tle_2"]
+    
+    #tle_1
+    obj['norad'] = tle_1[2:7]
+    obj['classification'] = tle_1[7]
+    obj['international_designation'] = tle_1[9:15]
+    obj['epoch_year'] = int("20" + tle_1[18:20])
+    obj["epoch_day"] =float(tle_1[20:32])
+    obj["first_derivative_mean_motion"] = float(tle_1[33:43])
+    obj["second_derivative_mean_motion"] = float(tle_1[44:52][0] + '.' + tle_1[44:52][1:6] + 'e' + tle_1[44:52][6:8])
+    obj["bstar"] =float(tle_1[53:61][0] + '.' + tle_1[53:61][1:6] + 'e' + tle_1[53:61][6:8])
+    obj["set_number"] = int(tle_1[64:68])
+
+    #tle_2
+    obj["inclination"] =float(tle_2[8:16])
+    obj["raan"] =float(tle_2[17:25])
+    obj["eccentricity"] = float("0." + tle_2[26:33])
+    obj["argp"] =float(tle_2[34:42])
+    obj["mean_anomaly"] =float(tle_2[43:51])
+    obj["mean_motion"] =float(tle_2[52:63])
+    obj["rev_num"] =int(tle_2[63:68])
+    return obj
+    
 
 # Create your views here.
 @api_view(['GET'])
@@ -40,41 +70,27 @@ def satelliteList(request):
     try: 
         satellites = Satellite.objects.all();
         serializer = SatelliteSerializer(satellites, many=True);
-        satellite_list = [];
-        for satellite in serializer.data:
-            tle_data = TLE.from_lines(satellite["name"], satellite["tle_1"], satellite["tle_2"])
-            dict_tle_data = tle_data.asdict()
-            dict_tle_data["description"] = satellite["description"]
-            dict_tle_data["id"] = satellite["id"]
-            dict_tle_data["tle_1"] = satellite["tle_1"]
-            dict_tle_data["tle_2"] = satellite["tle_2"]
-            satellite_list.append(dict_tle_data)
-        return Response(satellite_list, status=200)
+        return Response(serializer.data, status=200)
     except Satellite.DoesNotExist:
         return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
 @api_view(['GET'])
 def satelliteDetail(request, primaryKey):
     try: 
-        satellite = Satellite.objects.get(id=primaryKey);
+        satellite = Satellite.objects.get(name=primaryKey);
         serializer = SatelliteSerializer(satellite, many=False);
-        tle_data = TLE.from_lines(serializer.data["name"], serializer.data["tle_1"], serializer.data["tle_2"])
-        dict_tle_data = tle_data.asdict()
-        dict_tle_data["description"] = serializer.data["description"]
-        dict_tle_data["id"] = serializer.data["id"]
-        dict_tle_data["tle_1"] = serializer.data["tle_1"]
-        dict_tle_data["tle_2"] = serializer.data["tle_2"]
-        return Response(dict_tle_data, status=200)
+        return Response(serializer.data, status=200)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
 
 @api_view(['POST'])
 def satelliteCreate(request):
-    serializer = SatelliteSerializer(data=request.data);
+    parsed_data = parseTLE(request.data)
+    serializer = SatelliteSerializer(data=parsed_data);
     if serializer.is_valid():
-       serializer.save()
-       return Response(serializer.data)
-    return Response({"message": "Unable to insert data into database"}, status=400)
+        serializer.save()
+        return Response(parsed_data)
+    return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
 
 @api_view(['PUT'])
 def satelliteUpdate(request, primaryKey):
@@ -89,11 +105,12 @@ def satelliteUpdate(request, primaryKey):
 @api_view(['DELETE'])
 def satelliteDelete(request, primaryKey):
     try: 
-        satellite = Satellite.objects.get(id=primaryKey);
+        satellite = Satellite.objects.get(name=primaryKey);
         satellite.delete();
     except Satellite.DoesNotExist:
         return Response(data={'message': 'item was not found'}, status=404)
     return Response(data={'message': 'item has been deleted'}, status=200)
 
-       
+
+   
 
