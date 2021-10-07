@@ -3,8 +3,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SatelliteSerializer
 from satellite.models import Satellite
-import logging
 from api.functions import parseTLE
+from urllib.parse import parse_qs
+import logging
 
 
 logger = logging.getLogger("mylogger")
@@ -50,11 +51,16 @@ def satelliteList(request):
         return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
 @api_view(['GET'])
-def satelliteDetail(_, primaryKey):
+def satelliteDetail(_, parameter):
     try: 
-        satellite = Satellite.objects.get(name=primaryKey);
-        serializer = SatelliteSerializer(satellite, many=False);
-        return Response(serializer.data, status=200)
+        parsed_query = parse_qs(parameter) 
+        if 'name' in parsed_query:
+            name = parsed_query['name'][0]
+            satellite = Satellite.objects.get(name=name);
+            serializer = SatelliteSerializer(satellite, many=False);
+            return Response(serializer.data, status=200)
+        else:
+            return Response({"message": "url must contain query"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
 
@@ -68,29 +74,39 @@ def satelliteCreate(request):
     return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
 
 @api_view(['PUT'])
-def satelliteUpdate(request, primaryKey):
+def satelliteUpdate(request, parameter):
     allowed = ["name", "tle_1", "tle_2", "description"] #data the user is allowed to change
-    change = True
+    allow_to_change = True
     for value in allowed:
         if value not in request.data:
-            change = False
+             allow_to_change     = False
     
-    if change:
-        parsed_data = parseTLE(request.data)
-        satellite = Satellite.objects.get(name=primaryKey);
-        serializer = SatelliteSerializer(instance=satellite, data=parsed_data);
+    if  allow_to_change :
+        parsed_query = parse_qs(parameter) 
+        if 'name' in parsed_query:
+            name = parsed_query['name'][0]
+            parsed_data = parseTLE(request.data)
+            satellite = Satellite.objects.get(name=name);
+            serializer = SatelliteSerializer(instance=satellite, data=parsed_data);
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=200)
-        return Response({"message": "Unable to update satellite", "errors": serializer.errors}, status=405)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=200)
+            return Response({"message": "Unable to update satellite", "errors": serializer.errors}, status=405)
+        else:
+            return Response({"message": "url must contain query"}, status = 400)
     return Response({"message": "Unable to update satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
 
 @api_view(['DELETE'])
-def satelliteDelete(_, primaryKey):
+def satelliteDelete(_, parameter):
     try: 
-        satellite = Satellite.objects.get(name=primaryKey);
-        satellite.delete();
+        parsed_query = parse_qs(parameter) 
+        if 'name' in parsed_query:
+            name = parsed_query['name'][0]
+            satellite = Satellite.objects.get(name=name);
+            satellite.delete();
+        else:
+            return Response({"message": "url must contain query"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message': 'item was not found'}, status=404)
     return Response(data={'message': 'item has been deleted'}, status=200)
