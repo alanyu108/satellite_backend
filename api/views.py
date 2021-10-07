@@ -20,22 +20,27 @@ def apiOverview(response):
             "satellites/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
+                'example': "/api/satellites/", 
             },
-            "satellite/:id/": {
+            "satellite/:name/": {
                 'request-type': 'GET',
-                'description': "returns a satellite in the database given its id",
+                'description': "returns a satellite in the database given its name",
+                'example': "/api/satellite/name=CALSPHERE 1/", 
             },
             "satellite-create/": {
                 'request-type': 'POST',
-                'description': "adds a new satellite entry into the database",
+                'description': "adds a new satellite entry into the database, data sent to this route must have the keys name, tle_1, tle_2 and description",
+                'example': "/api/satellite-create/", 
             },
-             "satellite-update/:id/": {
+             "satellite-update/:name/": {
                 'request-type': 'PUT',
-                'description': "updates a satellite given its id",
+                'description': "updates a satellite given its name,  data sent to this route must have the keys name, tle_1, tle_2 and description",
+                'example': "/api/satellite-update/name=CALSPHERE 1/", 
             },
-             "satellite-delete/:id/": {
+             "satellite-delete/:name/": {
                 'request-type': 'DELETE',
-                'description': "delete a satellite given its id",
+                'description': "delete a satellite given its name",
+                'example': "/api/satellite-delete/name=CALSPHERE 1/",
             },
         }
     }
