@@ -3,12 +3,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import SatelliteSerializer
 from satellite.models import Satellite
-from tletools import TLE
 import logging
-import json
+
 
 logger = logging.getLogger("mylogger")
+#logger.info() print to command line
 
+#
 def parseTLE(obj):
     tle_1 = obj['tle_1']
     tle_2 = obj["tle_2"]
@@ -75,7 +76,7 @@ def satelliteList(request):
         return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
 @api_view(['GET'])
-def satelliteDetail(request, primaryKey):
+def satelliteDetail(_, primaryKey):
     try: 
         satellite = Satellite.objects.get(name=primaryKey);
         serializer = SatelliteSerializer(satellite, many=False);
@@ -94,22 +95,32 @@ def satelliteCreate(request):
 
 @api_view(['PUT'])
 def satelliteUpdate(request, primaryKey):
-    satellite = Satellite.objects.get(id=primaryKey);
-    serializer = SatelliteSerializer(instance=satellite, data=request.data);
+    allowed = ["name", "tle_1", "tle_2", "description"] #data the user is allowed to change
+    change = True
+    for value in allowed:
+        if value not in request.data:
+            change = False
+    
+    if change:
+        parsed_data = parseTLE(request.data)
+        satellite = Satellite.objects.get(name=primaryKey);
+        serializer = SatelliteSerializer(instance=satellite, data=parsed_data);
 
-    if serializer.is_valid():
-       serializer.save()
-       return Response(serializer.data, status=200)
-    return Response({"message": "Unable to update satellite"}, status=405)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response({"message": "Unable to update satellite", "errors": serializer.errors}, status=405)
+    return Response({"message": "Unable to update satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
 
 @api_view(['DELETE'])
-def satelliteDelete(request, primaryKey):
+def satelliteDelete(_, primaryKey):
     try: 
         satellite = Satellite.objects.get(name=primaryKey);
         satellite.delete();
     except Satellite.DoesNotExist:
         return Response(data={'message': 'item was not found'}, status=404)
     return Response(data={'message': 'item has been deleted'}, status=200)
+
 
 
    
