@@ -51,9 +51,9 @@ def satelliteList(request):
         return Response(data={'message':'There is no satellite data in the database'}, status=404)
 
 @api_view(['GET'])
-def satelliteDetail(_, parameter):
+def satelliteDetail(_, query):
     try: 
-        parsed_query = parse_qs(parameter) 
+        parsed_query = parse_qs(query) 
         if 'name' in parsed_query:
             name = parsed_query['name'][0]
             satellite = Satellite.objects.get(name=name);
@@ -74,7 +74,7 @@ def satelliteCreate(request):
     return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
 
 @api_view(['PUT'])
-def satelliteUpdate(request, parameter):
+def satelliteUpdate(request, query):
     allowed = ["name", "tle_1", "tle_2", "description"] #data the user is allowed to change
     allow_to_change = True
     for value in allowed:
@@ -82,7 +82,7 @@ def satelliteUpdate(request, parameter):
              allow_to_change     = False
     
     if  allow_to_change :
-        parsed_query = parse_qs(parameter) 
+        parsed_query = parse_qs(query) 
         if 'name' in parsed_query:
             name = parsed_query['name'][0]
             parsed_data = parseTLE(request.data)
@@ -98,9 +98,9 @@ def satelliteUpdate(request, parameter):
     return Response({"message": "Unable to update satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
 
 @api_view(['DELETE'])
-def satelliteDelete(_, parameter):
+def satelliteDelete(_, query):
     try: 
-        parsed_query = parse_qs(parameter) 
+        parsed_query = parse_qs(query) 
         if 'name' in parsed_query:
             name = parsed_query['name'][0]
             satellite = Satellite.objects.get(name=name);
