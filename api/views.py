@@ -12,7 +12,7 @@ logger = logging.getLogger("mylogger")
 
 # Create your views here.
 @api_view(['GET'])
-def apiOverview(response):
+def apiOverview(_):
     data = {
         'message': 'This is the satellite api route',
         'routes': {
@@ -20,6 +20,16 @@ def apiOverview(response):
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
                 'example': "/api/satellites/", 
+            },
+            "satellites/:query": {
+                'request-type': 'GET',
+                'description': "returns all satellites in the database based on given query",
+                'query': {
+                    "page": {
+                        "description":"returns a limited amount of satellites based on the page number , default is 5",
+                        'example': "/api/satellites/page=1/", 
+                    }, 
+                },
             },
             "satellite/:name/": {
                 'request-type': 'GET',
