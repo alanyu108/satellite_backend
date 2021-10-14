@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('', views.apiOverview, name="api-overview"),
     path('satellites/', views.satelliteList, name="satellites"),
+    path('satellites/<str:query>/', views.satellitePage, name="satellites page"),
     path('satellite/<str:query>/', views.satelliteDetail, name="satellite"),
     path('satellite-create/', views.satelliteCreate, name="satellite-create"),
     path('satellite-update/<str:query>/', views.satelliteUpdate, name="satellite-update"),
