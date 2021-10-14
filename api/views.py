@@ -1,5 +1,3 @@
-from re import X
-from urllib import parse
 from satellite.models import Satellite
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
