@@ -1,12 +1,14 @@
-from satellite.models import Satellite
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .serializers import SatelliteSerializer
-from satellite.models import Satellite
-from api.functions import parseTLE
-from urllib.parse import parse_qs
-
+import json
 import logging
+from urllib.parse import parse_qs
+from api.functions import parseTLE
+from satellite.models import Satellite
+from satellite.models import Satellite
+from .serializers import SatelliteSerializer
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
+
 logger = logging.getLogger("mylogger")
 #logger.info() print to command line
 
@@ -66,7 +68,7 @@ def satelliteList(_):
 
 
 @api_view(['GET'])
-def satellitePage(_, query):
+def satelliteQuery(_, query):
     try: 
         parsed_query = parse_qs(query) 
         if 'page' in parsed_query: 
@@ -85,8 +87,27 @@ def satellitePage(_, query):
                 return Response(filtered_satellite, status=200)
             else:
                 return Response(data={'message':'page number must be an integer'}, status=400)
+        elif 'search' in parsed_query:
+            search_value = parsed_query['search'][0]
+
+            if not search_value.strip() == "":
+                satellites = Satellite.objects.all();
+                serializer = SatelliteSerializer(satellites, many=True);
+
+                search_value = search_value.strip().upper()
+
+                data = json.loads(json.dumps(serializer.data))
+                filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
+
+                if len(filtered_satellites) != 0: 
+                    return Response(data=filtered_satellites, status=200)
+                else:
+                    return Response(data={"message": "no satellite was found"}, status=200)
+            else:
+                return Response(data={"message": "search query must have a value"}, status=200)
         else:
             return Response(data={'message':'incorrect query'}, status=400)
+        
     except Satellite.DoesNotExist:
         return Response(data={'message':'There are no satellites data in the database'}, status=404)
 
