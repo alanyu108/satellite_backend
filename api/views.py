@@ -31,6 +31,11 @@ def apiOverview(_):
                         "description":"returns a limited amount of satellites based on the page number , default is 5",
                         'example': "/api/satellites/page=1/", 
                     }, 
+                    "search": {
+                        "description":"returns satellites based on search parameter",
+                        'example': "/api/satellites/search=ca/", 
+                    }, 
+
                 },
             },
             "satellite/:name/": {
