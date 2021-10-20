@@ -4,8 +4,8 @@ from api.functions import parseTLE
 
 filename = "C:\\Users\\Alan\\Documents\\django-project\\backend\\satellite_backend\\data\\active.txt"
 line_number = 0;
-min_line = 0;
-max_line = 22;
+min_line = 21; #not inclusive
+max_line = 103; #not inclusive
 
 empty = {}
 empty_list = list([]);
@@ -27,9 +27,9 @@ for element in empty_list:
     if element:
         element["description"] = ""
         data = parseTLE(element)
-        # print(data)
+        print(data)
         url = "http://127.0.0.1:8000/api/satellite-create/"
         headers = {'Content-type': 'application/json'}
         r = requests.post(url, data=json.dumps(data), headers=headers)
-        print(r)
+        print(r.status_code)
        

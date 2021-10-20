@@ -50,7 +50,7 @@ def apiOverview(_):
             },
              "satellite-update/:name/": {
                 'request-type': 'PUT',
-                'description': "updates a satellite given its name,  data sent to this route must have the keys name, tle_1, tle_2 and description",
+                'description': "updates a satellite given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and description",
                 'example': "/api/satellite-update/name=CALSPHERE 1/", 
             },
              "satellite-delete/:name/": {
@@ -89,6 +89,8 @@ def satelliteQuery(_, query):
                 for i in range(iter, iter + satellite_num):
                     if i < len(serializer.data):
                         filtered_satellite.append(serializer.data[i])
+                    else:
+                        break;
                 return Response(filtered_satellite, status=200)
             else:
                 return Response(data={'message':'page number must be an integer'}, status=400)
