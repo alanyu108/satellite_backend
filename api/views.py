@@ -73,9 +73,9 @@ def satelliteList(_):
 
 
 @api_view(['GET'])
-def satelliteQuery(_, query):
+def satelliteQuery(request, query):
     try: 
-        parsed_query = parse_qs(query) 
+        parsed_query = parse_qs(query)
         if 'page' in parsed_query: 
             if isinstance(int(parsed_query['page'][0]), int) and int(parsed_query['page'][0]) >= 1 :
                 satellites = Satellite.objects.all();
@@ -94,24 +94,29 @@ def satelliteQuery(_, query):
                 return Response(filtered_satellite, status=200)
             else:
                 return Response(data={'message':'page number must be an integer'}, status=400)
-        elif 'search' in parsed_query:
-            search_value = parsed_query['search'][0]
+        elif 'search' in query:
+            user_request = request.data
 
-            if not search_value.strip() == "":
-                satellites = Satellite.objects.all();
-                serializer = SatelliteSerializer(satellites, many=True);
+            if 'search' in user_request:
+                search_value = user_request['search']
 
-                search_value = search_value.strip().upper()
+                if not search_value.strip() == "":
+                    satellites = Satellite.objects.all();
+                    serializer = SatelliteSerializer(satellites, many=True);
 
-                data = json.loads(json.dumps(serializer.data))
-                filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
+                    search_value = search_value.strip()
 
-                if len(filtered_satellites) != 0: 
-                    return Response(data=filtered_satellites, status=200)
+                    data = json.loads(json.dumps(serializer.data))
+                    filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
+
+                    if len(filtered_satellites) != 0: 
+                        return Response(data=filtered_satellites, status=200)
+                    else:
+                        return Response(data={"message": "no satellite was found"}, status=200)
                 else:
-                    return Response(data={"message": "no satellite was found"}, status=200)
+                    return Response(data={"message": "search query must have a value"}, status=200)
             else:
-                return Response(data={"message": "search query must have a value"}, status=200)
+                return Response(data={"message": "body must contain search key"}, status=400)
         else:
             return Response(data={'message':'incorrect query'}, status=400)
         
@@ -120,11 +125,12 @@ def satelliteQuery(_, query):
 
 
 @api_view(['GET'])
-def satelliteDetail(_, query):
+def satelliteDetail(request):
     try: 
-        parsed_query = parse_qs(query) 
-        if 'name' in parsed_query:
-            name = parsed_query['name'][0]
+        user_request = request.data
+
+        if 'name' in user_request:
+            name = user_request['name']
             satellite = Satellite.objects.get(name=name);
             serializer = SatelliteSerializer(satellite, many=False);
             return Response(serializer.data, status=200)
@@ -132,6 +138,8 @@ def satelliteDetail(_, query):
             return Response({"message": "url must contain correct query"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
+    
+    
 
 @api_view(['POST'])
 def satelliteCreate(request):
@@ -148,7 +156,7 @@ def satelliteUpdate(request, query):
     allow_to_change = True
     for value in allowed:
         if value not in request.data:
-             allow_to_change     = False
+             allow_to_change = False
     
     if  allow_to_change :
         parsed_query = parse_qs(query) 
@@ -167,11 +175,11 @@ def satelliteUpdate(request, query):
     return Response({"message": "Unable to update satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
 
 @api_view(['DELETE'])
-def satelliteDelete(_, query):
+def satelliteDelete(request):
     try: 
-        parsed_query = parse_qs(query) 
-        if 'name' in parsed_query:
-            name = parsed_query['name'][0]
+        user_request = request.data
+        if 'name' in user_request:
+            name = user_request['name']
             satellite = Satellite.objects.get(name=name);
             satellite.delete();
         else:
