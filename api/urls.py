@@ -7,6 +7,6 @@ urlpatterns = [
     path('satellites/<str:query>/', views.satelliteQuery, name="satellites page"),
     path('satellite/', views.satelliteDetail, name="satellite"),
     path('satellite-create/', views.satelliteCreate, name="satellite-create"),
-    path('satellite-update/<str:query>/', views.satelliteUpdate, name="satellite-update"),
+    path('satellite-update/', views.satelliteUpdate, name="satellite-update"),
     path('satellite-delete/', views.satelliteDelete, name="satellite-delete"),
 ]
