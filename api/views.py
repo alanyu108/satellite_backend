@@ -91,7 +91,7 @@ def satelliteList(_):
         return Response(data={'message':'There are no satellites data in the database'}, status=404)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def satelliteQuery(request, query):
     try: 
         parsed_query = parse_qs(query)
@@ -113,9 +113,8 @@ def satelliteQuery(request, query):
                 return Response(filtered_satellite, status=200)
             else:
                 return Response(data={'message':'page number must be an integer'}, status=400)
-        elif 'search' == query:
+        elif query == 'search':
             user_request = request.data
-
             if 'search' in user_request:
                 search_value = user_request['search']
 
