@@ -130,9 +130,9 @@ def satelliteQuery(request, query):
                     if len(filtered_satellites) != 0: 
                         return Response(data=filtered_satellites, status=200)
                     else:
-                        return Response(data={"message": "no satellite was found"}, status=200)
+                        return Response(data={"message": "no satellite was found"}, status=404, headers={"Content-Type": "application/json"})
                 else:
-                    return Response(data={"message": "search query must have a value"}, status=200)
+                    return Response(data={"message": "search query must have a value"}, status=400)
             else:
                 return Response(data={"message": "body must contain search key"}, status=400)
         else:
