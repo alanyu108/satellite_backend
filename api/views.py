@@ -17,32 +17,29 @@ logger = logging.getLogger("mylogger")
 def apiOverview(_):
     data = {
         'message': 'This is the satellite api route',
-        'routes': {
+        'routes': 
+        {
             "satellites/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
                 'example': "/api/satellites/", 
             },
-            "satellites/:query": {
+            "satellites/page=<int>": {
                 'request-type': 'GET',
+                "description":"returns a limited amount of satellites based on the page number , default is 5, int must be greater than or equal to 1",
+                'example': "/api/satellites/page=1/", 
+            },
+            "satellites/search": {
+                'request-type': 'POST',
                 'description': "returns all satellites in the database based on given query",
-                'query': {
-                    "page": {
-                        "description":"returns a limited amount of satellites based on the page number , default is 5",
-                        'example': "/api/satellites/page=1/", 
-                    }, 
-                    "search": {
-                        "description":"returns satellites based on search parameter",
-                        'content-type':'application/json',
-                        'example': "/api/satellites/search/", 
-                        'request body': {
-                            'search': "ca"
-                        },
-                    }, 
+                'content-type':'application/json',
+                'example': "/api/satellites/search/", 
+                'request body': {
+                    'search': "ca"
                 },
             },
             "satellite/": {
-                'request-type': 'GET',
+                'request-type': 'POST',
                 'description': "returns a satellite in the database given its name",
                 'example': "/api/satellite/",
                 'content-type':'application/json',
@@ -66,7 +63,6 @@ def apiOverview(_):
                     "tle_2": "2 01361  32.1454 333.4385 0012647 350.6526   9.3735  9.89299852 38197",
                     "description": "test"
                 }
-                
             },
              "satellite-delete/": {
                 'request-type': 'DELETE',
@@ -91,52 +87,57 @@ def satelliteList(_):
         return Response(data={'message':'There are no satellites data in the database'}, status=404)
 
 
-@api_view(['POST'])
-def satelliteQuery(request, query):
+@api_view(['GET'])
+def satellitePage(_, number):
     try: 
-        parsed_query = parse_qs(query)
-        if 'page' in parsed_query: 
-            if isinstance(int(parsed_query['page'][0]), int) and int(parsed_query['page'][0]) >= 1 :
+        if isinstance(number, int) and number >= 1:
+            satellites = Satellite.objects.all();
+            serializer = SatelliteSerializer(satellites, many=True);
+            
+            satellite_num = 5
+            page_num = number
+            iter = satellite_num * (page_num - 1)
+            filtered_satellite = []
+
+            for i in range(iter, iter + satellite_num):
+                if i < len(serializer.data):
+                    filtered_satellite.append(serializer.data[i])
+                else:
+                    break;
+            return Response(filtered_satellite, status=200)
+        else:
+            return Response(data={'message':'page number must be an integer'}, status=400)
+    except Satellite.DoesNotExist:
+        return Response(data={'message':'There are no satellites data in the database'}, status=404)
+
+
+@api_view(['POST'])
+def satelliteSearch(request):
+    try: 
+        user_request = request.data
+        if 'search' in user_request:
+            search_value = user_request['search']
+
+            if not search_value.strip() == "":
                 satellites = Satellite.objects.all();
                 serializer = SatelliteSerializer(satellites, many=True);
-                
-                satellite_num = 5
-                page_num = int(parsed_query['page'][0])
-                iter = satellite_num * (page_num - 1)
-                filtered_satellite = []
 
-                for i in range(iter, iter + satellite_num):
-                    if i < len(serializer.data):
-                        filtered_satellite.append(serializer.data[i])
-                    else:
-                        break;
-                return Response(filtered_satellite, status=200)
-            else:
-                return Response(data={'message':'page number must be an integer'}, status=400)
-        elif query == 'search':
-            user_request = request.data
-            if 'search' in user_request:
-                search_value = user_request['search']
+                search_value = search_value.strip()
 
-                if not search_value.strip() == "":
-                    satellites = Satellite.objects.all();
-                    serializer = SatelliteSerializer(satellites, many=True);
+                data = json.loads(json.dumps(serializer.data))
+                filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
 
-                    search_value = search_value.strip()
-
-                    data = json.loads(json.dumps(serializer.data))
-                    filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
-
-                    if len(filtered_satellites) != 0: 
-                        return Response(data=filtered_satellites, status=200)
-                    else:
-                        return Response(data={"message": "no satellite was found"}, status=404, headers={"Content-Type": "application/json"})
+                if len(filtered_satellites) != 0: 
+                    return Response(data=filtered_satellites, status=200)
                 else:
-                    return Response(data={"message": "search query must have a value"}, status=400)
+                    return Response(data={"message": "no satellite was found"}, status=404, headers={"Content-Type": "application/json"})
             else:
-                return Response(data={"message": "body must contain search key"}, status=400)
+                return Response(data={"message": "search query must have a value"}, status=400)
         else:
-            return Response(data={'message':'incorrect query'}, status=400)
+            return Response(data={"message": "body must contain search key"}, status=400)
+    except Satellite.DoesNotExist:
+        return Response(data={'message':'There are no satellites data in the database'}, status=404)
+        
         
     except Satellite.DoesNotExist:
         return Response(data={'message':'There are no satellites data in the database'}, status=404)
@@ -156,7 +157,6 @@ def satelliteDetail(request):
             return Response({"message": "url must contain correct query"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
-    
     
 
 @api_view(['POST'])
