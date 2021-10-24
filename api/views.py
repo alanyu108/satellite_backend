@@ -113,7 +113,7 @@ def satelliteQuery(request, query):
                 return Response(filtered_satellite, status=200)
             else:
                 return Response(data={'message':'page number must be an integer'}, status=400)
-        elif 'search' in query:
+        elif 'search' == query:
             user_request = request.data
 
             if 'search' in user_request:
