@@ -170,7 +170,7 @@ def satelliteCreate(request):
 
 @api_view(['PUT'])
 def satelliteUpdate(request):
-    allowed = ["name", "tle_1", "tle_2", "description"] #data the user is allowed to change
+    allowed = ["name", "tle_1", "tle_2", "description", "object_status", "country", "launch_date", "launch_site"] #data the user is allowed to change
     allow_to_change = True
     for value in allowed:
         if value not in request.data:
