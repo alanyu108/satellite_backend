@@ -10,4 +10,5 @@ urlpatterns = [
     path('satellite-create/', views.satelliteCreate, name="satellite-create"),
     path('satellite-update/', views.satelliteUpdate, name="satellite-update"),
     path('satellite-delete/', views.satelliteDelete, name="satellite-delete"),
+    path('satellite-visible/', views.satelliteVisibility, name="satellite-visible"),
 ]

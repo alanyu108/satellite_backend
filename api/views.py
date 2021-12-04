@@ -1,6 +1,9 @@
 import json
 import logging
-from urllib.parse import parse_qs
+import datetime
+import ephem
+from math import degrees
+from calendar import timegm
 from api.functions import parseTLE
 from satellite.models import Satellite
 from satellite.models import Satellite
@@ -52,7 +55,7 @@ def apiOverview(_):
                 'description': "adds a new satellite entry into the database, data sent to this route must have the keys name, tle_1, tle_2 and description",
                 'example': "/api/satellite-create/", 
             },
-             "satellite-update/": {
+            "satellite-update/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and description",
                 'example': "/api/satellite-update/",
@@ -64,13 +67,25 @@ def apiOverview(_):
                     "description": "test"
                 }
             },
-             "satellite-delete/": {
+            "satellite-delete/": {
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its name",
                 'content-type':'application/json',
                 'example': "/api/satellite-delete/",
                 'request body': {
                     "name": "CALSPHERE 1",
+                },
+            },
+            "satellite-visible/": {
+                'request-type': 'POST',
+                'description': "given a satellite name and user location, return if satellite is visible and for how long",
+                'content-type':'application/json',
+                'example': "/api/satellite-visible/",
+                'request body': {
+                    "name": "LES-5",
+                    "longitude": 40.7128,
+                    "latitude": 74.0060,
+                    "altitude": 24
                 },
             },
         }
@@ -138,9 +153,6 @@ def satelliteSearch(request):
     except Satellite.DoesNotExist:
         return Response(data={'message':'There are no satellites data in the database'}, status=404)
         
-        
-    except Satellite.DoesNotExist:
-        return Response(data={'message':'There are no satellites data in the database'}, status=404)
 
 
 @api_view(['GET'])
@@ -200,11 +212,101 @@ def satelliteDelete(request):
             name = user_request['name']
             satellite = Satellite.objects.get(name=name);
             satellite.delete();
+            return Response(data={'message': 'item has been deleted'}, status=200)
         else:
             return Response({"message": "url must contain correct query"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message': 'item was not found'}, status=404)
-    return Response(data={'message': 'item has been deleted'}, status=200)
+
+@api_view(['POST'])
+def satelliteVisibility(request):
+    def seconds_between(d1, d2):
+        return abs((d2 - d1).seconds)
+
+    def datetime_from_time(tr):
+        year, month, day, hour, minute, second = tr.tuple()
+        dt = datetime.datetime(year, month, day, hour, minute, int(second))
+        return dt
+
+    def get_next_pass(lon, lat, alt, tle):
+        sat = ephem.readtle(str(tle[0]), str(tle[1]), str(tle[2]))
+
+        observer = ephem.Observer()
+        observer.lat = str(lat)
+        observer.long = str(lon)
+        observer.elevation = alt
+        observer.pressure = 0
+        observer.horizon = '-0:34'
+
+        now = datetime.datetime.utcnow()
+        observer.date = now
+
+        tr, azr, tt, altt, ts, azs = observer.next_pass(sat)
+
+        duration = int((ts - tr) *60*60*24)
+        # rise_time = datetime_from_time(tr)
+        max_time = datetime_from_time(tt)
+        # set_time = datetime_from_time(ts)
+
+        observer.date = max_time
+
+        sun = ephem.Sun()
+        sun.compute(observer)
+        sat.compute(observer)
+
+        sun_alt = degrees(sun.alt)
+
+        visible = False
+        if sat.eclipsed is False and -18 < degrees(sun_alt) < -6 :
+            visible = True
+
+        return {
+                # "rise_time": timegm(rise_time.timetuple()),
+                # "rise_azimuth": degrees(azr),
+                # "max_time": timegm(max_time.timetuple()),
+                # "max_alt": degrees(altt),
+                # "set_time": timegm(set_time.timetuple()),
+                # "set_azimuth": degrees(azs),
+                # "elevation": sat.elevation,
+                # "sun_alt": sun_alt,
+                'name': tle[0], 
+                "duration": duration,
+                "visible": visible
+            }
+
+
+    allowed = ["name", "longitude", "latitude", "altitude"] #fields the user must provide
+    allow_to_change = True
+    for value in allowed:
+        if value not in request.data:
+             allow_to_change = False
+
+    if allow_to_change:
+        try:
+            user_request = request.data
+         
+            satellite = Satellite.objects.get(name= user_request['name']);
+            satellite_info = SatelliteSerializer(satellite, many=False).data;
+            
+            
+            visibility = get_next_pass(user_request['longitude'], 
+                                    user_request['latitude'], 
+                                    user_request['altitude'], 
+                                    [satellite_info['name'], 
+                                    satellite_info['tle_1'], 
+                                    satellite_info['tle_2']])
+            return Response(data=visibility, status=200)
+           
+
+        except (Satellite.DoesNotExist, ValueError ) as e:
+            if str(e) == "Satellite matching query does not exist.":
+                return Response(data={'message': 'item was not found'}, status=404)
+            elif str(e) == "that satellite seems to stay always below your horizon":
+                return Response(data={'message': 'that satellite seems to stay always below your horizon'}, status=200)
+    else:
+        return Response({"message": "Unable to find satellite visbility", "error": "data must contain the name, longitude, latitude, altitude"}, status=400)
+
+   
 
 
 
