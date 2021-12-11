@@ -155,7 +155,7 @@ def satelliteSearch(request):
         
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def satelliteDetail(request):
     try: 
         user_request = request.data
