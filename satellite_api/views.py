@@ -24,18 +24,18 @@ def satelliteOverview(_):
             "all/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
-                'example': "/api/satellites/", 
+                'example': "/api/satellite/all/", 
             },
             "page=<int>/": {
                 'request-type': 'GET',
                 "description":"returns a limited amount of satellites based on the page number , default is 5, int must be greater than or equal to 1",
-                'example': "/api/satellites/page=1/", 
+                'example': "/api/satellite/page=1/", 
             },
             "search/": {
                 'request-type': 'POST',
                 'description': "returns all satellites in the database based on given query",
                 'content-type':'application/json',
-                'example': "/api/satellites/search/", 
+                'example': "/api/satellite/search/", 
                 'request body': {
                     'search': "ca"
                 },
@@ -52,12 +52,12 @@ def satelliteOverview(_):
             "create/": {
                 'request-type': 'POST',
                 'description': "adds a new satellite entry into the database, data sent to this route must have the keys name, tle_1, tle_2 and description",
-                'example': "/api/satellite-create/", 
+                'example': "/api/satellite/create/", 
             },
             "update/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and description",
-                'example': "/api/satellite-update/",
+                'example': "/api/satellite/update/",
                 'content-type':'application/json', 
                 'request body': {
                     "name": "LCS 1",
@@ -70,7 +70,7 @@ def satelliteOverview(_):
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its name",
                 'content-type':'application/json',
-                'example': "/api/satellite-delete/",
+                'example': "/api/satellite/delete/",
                 'request body': {
                     "name": "CALSPHERE 1",
                 },
@@ -79,7 +79,7 @@ def satelliteOverview(_):
                 'request-type': 'POST',
                 'description': "given a satellite name and user location, return if satellite is visible and for how long",
                 'content-type':'application/json',
-                'example': "/api/satellite-visible/",
+                'example': "/api/satellite/visible/",
                 'request body': {
                     "name": "LES-5",
                     "longitude": 40.7128,
@@ -307,10 +307,6 @@ def satelliteVisibility(request):
                 return Response(data={'message': 'that satellite seems to stay always below your horizon'}, status=200)
     else:
         return Response({"message": "Unable to find satellite visbility", "error": "data must contain the name, longitude, latitude, altitude"}, status=400)
-
-   
-
-
 
    
 

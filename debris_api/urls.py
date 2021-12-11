@@ -9,4 +9,5 @@ urlpatterns = [
     path('delete/', views.debrisDelete, name="debris-delete"),
     path('search/', views.debrisSearch, name="debris-search"),
     path('page=<int:number>/', views.debrisPage, name="debris-page"),
+    path('overview/', views.debrisOverview, name="debris-overview"),
 ]

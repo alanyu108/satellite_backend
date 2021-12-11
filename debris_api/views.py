@@ -91,8 +91,8 @@ def debrisDelete(request):
 @api_view(['POST'])
 def debrisSearch(request):
     user_request = request.data
-    if 'name' in user_request:
-        search_value = user_request['name'].strip()
+    if 'search' in user_request:
+        search_value = user_request['search'].strip()
 
         if not search_value == "":
             satellites = Debris.objects.all();
@@ -131,5 +131,73 @@ def debrisPage(_, number):
         return Response(data={'message':'page number must be an integer'}, status=400)
    
 
-
+@api_view(['GET'])
+def debrisOverview(_):
+    data = {
+        'message': 'This is the debris overivew api route',
+        'routes': 
+        {
+            "all/": {
+                'request-type': 'GET',
+                'description': "returns all debris in the database",
+                'example': "/api/debris/all", 
+            },
+            "page=<int>/": {
+                'request-type': 'GET',
+                "description":"returns a limited amount of debris based on the page number , default is 5, int must be greater than or equal to 1",
+                'example': "/api/debris/page=1/", 
+            },
+            "search/": {
+                'request-type': 'POST',
+                'description': "returns all debris in the database given a search key and value, search uses the debris' name, to find debris with norad id use /api/debris/ route",
+                'content-type':'application/json',
+                'example': "/api/debris/search/", 
+                'request body': {
+                    'search': "ca"
+                },
+            },
+            "": {
+                'request-type': 'POST',
+                'description': "returns a satellite in the database given its norad id",
+                'example': "/api/debris/",
+                'content-type':'application/json',
+                'request body': {
+                    'norad': "33764"
+                }, 
+            },
+            "create/": {
+                'request-type': 'POST',
+                'description': "adds a new debris entry into the database, data sent to this route must have the keys name, tle_1, tle_2 ",
+                'example': "/api/debris/create/", 
+                'request body': {
+                    "name": "COSMOS 2251 DEB",
+                    "tle_1": "1 33764U 93036M   21345.55631112  .00000166  00000+0  66634-4 0  9994",
+                    "tle_2": "2 33764  74.0362  81.7831 0024183  39.0588 330.9424 14.35364036671538",
+                }
+            },
+            "update/": {
+                'request-type': 'PUT',
+                'description': "updates a debris given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and norad id used as an identifier",
+                'example': "/api/satellite-update/",
+                'content-type':'application/json', 
+                'request body': {
+                    "norad": 33764,
+                    "name": "COSMOS 2251 DEB",
+                    "tle_1": "1 33764U 93036M   21345.55631112  .00000166  00000+0  66634-4 0  9994",
+                    "tle_2": "2 33764  74.0362  81.7831 0024183  39.0588 330.9424 14.35364036671538",
+                }
+            },
+            "delete/": {
+                'request-type': 'DELETE',
+                'description': "delete a debris given its norad id",
+                'content-type':'application/json',
+                'example': "/api/satellite-delete/",
+                'request body': {
+                    "norad": 33764,
+                },
+            },
+        }
+    }
+    return Response(data=data)
+   
 
