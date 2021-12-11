@@ -1,4 +1,3 @@
-import satellite
 from satellite.models import Satellite
 from rest_framework import serializers
 from satellite.models import Satellite
