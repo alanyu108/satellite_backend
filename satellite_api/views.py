@@ -4,7 +4,7 @@ import datetime
 import ephem
 from math import degrees
 from calendar import timegm
-from api.functions import parseTLE
+from satellite_api.functions import parseTLE
 from satellite.models import Satellite
 from satellite.models import Satellite
 from .serializers import SatelliteSerializer
