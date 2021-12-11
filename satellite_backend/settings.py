@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     'rest_framework',
     #own apps
     'satellite.apps.SatelliteConfig',
+    'debris.apps.DebrisConfig',
 ]
 
 MIDDLEWARE = [

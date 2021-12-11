@@ -5,7 +5,7 @@ class Satellite(models.Model):
     name = models.CharField(max_length=24, primary_key=True)
     tle_1 = models.CharField(max_length=80, blank=False, null=False)
     tle_2 = models.CharField(max_length=80, blank=False, null=False)
-    description = models.TextField(default="",blank=True, null=True )
+    description = models.TextField(default="",blank=True, null=False )
     norad = models.CharField(max_length=5)
     classification = models.CharField(max_length=1)
     international_designation = models.CharField(max_length=6)
@@ -26,3 +26,4 @@ class Satellite(models.Model):
     launch_date =  models.CharField(max_length=10, default="0000-00-00", blank=True)
     launch_site =  models.CharField(max_length=128, default="", blank=True)
     country = models.CharField(max_length=64, default="", blank=True)
+    type = models.CharField(max_length=16, default="satellite", blank=False)

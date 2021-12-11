@@ -1,6 +1,6 @@
 import requests
 import json
-from api.functions import parseTLE
+from satellite_api.functions import parseTLE
 
 filename = "C:\\Users\\Alan\\Documents\\django-project\\backend\\satellite_backend\\data\\active.txt"
 line_number = 0;

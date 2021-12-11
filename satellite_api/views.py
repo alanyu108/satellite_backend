@@ -173,12 +173,21 @@ def satelliteDetail(request):
 
 @api_view(['POST'])
 def satelliteCreate(request):
-    parsed_data = parseTLE(request.data)
-    serializer = SatelliteSerializer(data=parsed_data);
-    if serializer.is_valid():
-        serializer.save()
-        return Response(parsed_data)
-    return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
+    allowed = ["name", "tle_1", "tle_2", "description"]
+    allow_to_change = True
+    for value in allowed:
+        if value not in request.data:
+             allow_to_change = False
+    if allow_to_change:
+        parsed_data = parseTLE(request.data)
+        serializer = SatelliteSerializer(data=parsed_data);
+        if serializer.is_valid():
+            serializer.save()
+            return Response(parsed_data)
+        return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
+    else:
+         return Response({"message": "Unable to create satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
+
 
 @api_view(['PUT'])
 def satelliteUpdate(request):
