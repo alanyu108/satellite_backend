@@ -19,20 +19,20 @@ logger = logging.getLogger("mylogger")
 @api_view(['GET'])
 def apiOverview(_):
     data = {
-        'message': 'This is the satellite api route',
+        'message': 'This is the satellite overivew api route',
         'routes': 
         {
-            "satellites/": {
+            "all/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
                 'example': "/api/satellites/", 
             },
-            "satellites/page=<int>": {
+            "page=<int>/": {
                 'request-type': 'GET',
                 "description":"returns a limited amount of satellites based on the page number , default is 5, int must be greater than or equal to 1",
                 'example': "/api/satellites/page=1/", 
             },
-            "satellites/search": {
+            "search/": {
                 'request-type': 'POST',
                 'description': "returns all satellites in the database based on given query",
                 'content-type':'application/json',
@@ -41,7 +41,7 @@ def apiOverview(_):
                     'search': "ca"
                 },
             },
-            "satellite/": {
+            "": {
                 'request-type': 'POST',
                 'description': "returns a satellite in the database given its name",
                 'example': "/api/satellite/",
@@ -50,12 +50,12 @@ def apiOverview(_):
                     'name': "CALSPHERE 1"
                 }, 
             },
-            "satellite-create/": {
+            "create/": {
                 'request-type': 'POST',
                 'description': "adds a new satellite entry into the database, data sent to this route must have the keys name, tle_1, tle_2 and description",
                 'example': "/api/satellite-create/", 
             },
-            "satellite-update/": {
+            "update/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and description",
                 'example': "/api/satellite-update/",
@@ -67,7 +67,7 @@ def apiOverview(_):
                     "description": "test"
                 }
             },
-            "satellite-delete/": {
+            "delete/": {
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its name",
                 'content-type':'application/json',
@@ -76,7 +76,7 @@ def apiOverview(_):
                     "name": "CALSPHERE 1",
                 },
             },
-            "satellite-visible/": {
+            "visible/": {
                 'request-type': 'POST',
                 'description': "given a satellite name and user location, return if satellite is visible and for how long",
                 'content-type':'application/json',
