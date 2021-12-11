@@ -4,8 +4,7 @@ import datetime
 import ephem
 from math import degrees
 from calendar import timegm
-from api.functions import parseTLE
-from satellite.models import Satellite
+from satellite_api.functions import parseTLE
 from satellite.models import Satellite
 from .serializers import SatelliteSerializer
 from rest_framework.response import Response
@@ -17,31 +16,31 @@ logger = logging.getLogger("mylogger")
 
 # Create your views here.
 @api_view(['GET'])
-def apiOverview(_):
+def satelliteOverview(_):
     data = {
-        'message': 'This is the satellite api route',
+        'message': 'This is the satellite overivew api route',
         'routes': 
         {
-            "satellites/": {
+            "all/": {
                 'request-type': 'GET',
                 'description': "returns all satellites in the database",
-                'example': "/api/satellites/", 
+                'example': "/api/satellite/all/", 
             },
-            "satellites/page=<int>": {
+            "page=<int>/": {
                 'request-type': 'GET',
                 "description":"returns a limited amount of satellites based on the page number , default is 5, int must be greater than or equal to 1",
-                'example': "/api/satellites/page=1/", 
+                'example': "/api/satellite/page=1/", 
             },
-            "satellites/search": {
+            "search/": {
                 'request-type': 'POST',
                 'description': "returns all satellites in the database based on given query",
                 'content-type':'application/json',
-                'example': "/api/satellites/search/", 
+                'example': "/api/satellite/search/", 
                 'request body': {
                     'search': "ca"
                 },
             },
-            "satellite/": {
+            "": {
                 'request-type': 'POST',
                 'description': "returns a satellite in the database given its name",
                 'example': "/api/satellite/",
@@ -50,15 +49,15 @@ def apiOverview(_):
                     'name': "CALSPHERE 1"
                 }, 
             },
-            "satellite-create/": {
+            "create/": {
                 'request-type': 'POST',
                 'description': "adds a new satellite entry into the database, data sent to this route must have the keys name, tle_1, tle_2 and description",
-                'example': "/api/satellite-create/", 
+                'example': "/api/satellite/create/", 
             },
-            "satellite-update/": {
+            "update/": {
                 'request-type': 'PUT',
                 'description': "updates a satellite given its name,  data sent to this route must have the keys: name, tle_1, tle_2 and description",
-                'example': "/api/satellite-update/",
+                'example': "/api/satellite/update/",
                 'content-type':'application/json', 
                 'request body': {
                     "name": "LCS 1",
@@ -67,20 +66,20 @@ def apiOverview(_):
                     "description": "test"
                 }
             },
-            "satellite-delete/": {
+            "delete/": {
                 'request-type': 'DELETE',
                 'description': "delete a satellite given its name",
                 'content-type':'application/json',
-                'example': "/api/satellite-delete/",
+                'example': "/api/satellite/delete/",
                 'request body': {
                     "name": "CALSPHERE 1",
                 },
             },
-            "satellite-visible/": {
+            "visible/": {
                 'request-type': 'POST',
                 'description': "given a satellite name and user location, return if satellite is visible and for how long",
                 'content-type':'application/json',
-                'example': "/api/satellite-visible/",
+                'example': "/api/satellite/visible/",
                 'request body': {
                     "name": "LES-5",
                     "longitude": 40.7128,
@@ -94,68 +93,62 @@ def apiOverview(_):
 
 @api_view(['GET'])
 def satelliteList(_):
-    try: 
-        satellites = Satellite.objects.all();
-        serializer = SatelliteSerializer(satellites, many=True);
-        return Response(serializer.data, status=200)
-    except Satellite.DoesNotExist:
-        return Response(data={'message':'There are no satellites data in the database'}, status=404)
+    satellites = Satellite.objects.all();
+    serializer = SatelliteSerializer(satellites, many=True);
+    return Response(serializer.data, status=200)
+    
 
 
 @api_view(['GET'])
-def satellitePage(_, number):
-    try: 
-        if isinstance(number, int) and number >= 1:
-            satellites = Satellite.objects.all();
-            serializer = SatelliteSerializer(satellites, many=True);
-            
-            satellite_num = 5
-            page_num = number
-            iter = satellite_num * (page_num - 1)
-            filtered_satellite = []
+def satellitePage(_, number): 
+    if isinstance(number, int) and number >= 1:
+        satellites = Satellite.objects.all();
+        serializer = SatelliteSerializer(satellites, many=True);
+        
+        satellite_num = 5
+        page_num = number
+        iter = satellite_num * (page_num - 1)
+        filtered_satellite = []
 
-            for i in range(iter, iter + satellite_num):
-                if i < len(serializer.data):
-                    filtered_satellite.append(serializer.data[i])
-                else:
-                    break;
-            return Response(filtered_satellite, status=200)
-        else:
-            return Response(data={'message':'page number must be an integer'}, status=400)
-    except Satellite.DoesNotExist:
-        return Response(data={'message':'There are no satellites data in the database'}, status=404)
+        for i in range(iter, iter + satellite_num):
+            if i < len(serializer.data):
+                filtered_satellite.append(serializer.data[i])
+            else:
+                break;
+        return Response(filtered_satellite, status=200)
+    else:
+        return Response(data={'message':'page number must be an integer'}, status=400)
+    
 
 
 @api_view(['POST'])
 def satelliteSearch(request):
-    try: 
-        user_request = request.data
-        if 'search' in user_request:
-            search_value = user_request['search']
+    user_request = request.data
+    if 'search' in user_request:
+        search_value = user_request['search']
 
-            if not search_value.strip() == "":
-                satellites = Satellite.objects.all();
-                serializer = SatelliteSerializer(satellites, many=True);
+        if not search_value.strip() == "":
+            satellites = Satellite.objects.all();
+            serializer = SatelliteSerializer(satellites, many=True);
 
-                search_value = search_value.strip()
+            search_value = search_value.strip()
 
-                data = json.loads(json.dumps(serializer.data))
-                filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
+            data = json.loads(json.dumps(serializer.data))
+            filtered_satellites = [x for x in data if x['name'].find(search_value) != -1]
 
-                if len(filtered_satellites) != 0: 
-                    return Response(data=filtered_satellites, status=200)
-                else:
-                    return Response(data={"message": "no satellite was found"}, status=404, headers={"Content-Type": "application/json"})
+            if len(filtered_satellites) != 0: 
+                return Response(data=filtered_satellites, status=200)
             else:
-                return Response(data={"message": "search query must have a value"}, status=400)
+                return Response(data={"message": "no satellite was found"}, status=404, headers={"Content-Type": "application/json"})
         else:
-            return Response(data={"message": "body must contain search key"}, status=400)
-    except Satellite.DoesNotExist:
-        return Response(data={'message':'There are no satellites data in the database'}, status=404)
+            return Response(data={"message": "search key must have a corresponding value"}, status=400)
+    else:
+        return Response(data={"message": "body must contain search key"}, status=400)
+    
         
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def satelliteDetail(request):
     try: 
         user_request = request.data
@@ -166,19 +159,28 @@ def satelliteDetail(request):
             serializer = SatelliteSerializer(satellite, many=False);
             return Response(serializer.data, status=200)
         else:
-            return Response({"message": "url must contain correct query"}, status = 400)
+            return Response({"message": "body must contain name key"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message':'Could not find satellite'}, status=404)
     
 
 @api_view(['POST'])
 def satelliteCreate(request):
-    parsed_data = parseTLE(request.data)
-    serializer = SatelliteSerializer(data=parsed_data);
-    if serializer.is_valid():
-        serializer.save()
-        return Response(parsed_data)
-    return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
+    allowed = ["name", "tle_1", "tle_2", "description"]
+    allow_to_change = True
+    for value in allowed:
+        if value not in request.data:
+             allow_to_change = False
+    if allow_to_change:
+        parsed_data = parseTLE(request.data)
+        serializer = SatelliteSerializer(data=parsed_data);
+        if serializer.is_valid():
+            serializer.save()
+            return Response(parsed_data)
+        return Response({"message": "Unable to insert data into database", "error": serializer.errors}, status=400)
+    else:
+         return Response({"message": "Unable to create satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
+
 
 @api_view(['PUT'])
 def satelliteUpdate(request):
@@ -201,7 +203,7 @@ def satelliteUpdate(request):
                 return Response(serializer.data, status=200)
             return Response({"message": "Unable to update satellite", "errors": serializer.errors}, status=405)
         else:
-            return Response({"message": "url must contain correct query"}, status = 400)
+            return Response({"message": "body must contain name key"}, status = 400)
     return Response({"message": "Unable to update satellite", "error": "data must contains the keys name, tle_1, tle_2, description"}, 400)
 
 @api_view(['DELETE'])
@@ -214,7 +216,7 @@ def satelliteDelete(request):
             satellite.delete();
             return Response(data={'message': 'item has been deleted'}, status=200)
         else:
-            return Response({"message": "url must contain correct query"}, status = 400)
+            return Response({"message": "body must contain name key"}, status = 400)
     except Satellite.DoesNotExist:
         return Response(data={'message': 'item was not found'}, status=404)
 
@@ -305,10 +307,6 @@ def satelliteVisibility(request):
                 return Response(data={'message': 'that satellite seems to stay always below your horizon'}, status=200)
     else:
         return Response({"message": "Unable to find satellite visbility", "error": "data must contain the name, longitude, latitude, altitude"}, status=400)
-
-   
-
-
 
    
 

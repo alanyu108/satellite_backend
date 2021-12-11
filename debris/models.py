@@ -1,12 +1,11 @@
 from django.db import models
 
 # Create your models here.
-class Satellite(models.Model):
-    name = models.CharField(max_length=24, primary_key=True)
+class Debris(models.Model):
+    name = models.CharField(max_length=24)
     tle_1 = models.CharField(max_length=80, blank=False, null=False)
     tle_2 = models.CharField(max_length=80, blank=False, null=False)
-    description = models.TextField(default="",blank=True, null=False )
-    norad = models.CharField(max_length=5)
+    norad = models.IntegerField(primary_key=True)
     classification = models.CharField(max_length=1)
     international_designation = models.CharField(max_length=6)
     epoch_year = models.IntegerField()
@@ -21,9 +20,5 @@ class Satellite(models.Model):
     argp = models.DecimalField(max_digits=10, decimal_places=4)
     mean_anomaly = models.DecimalField(max_digits=10, decimal_places=4)
     mean_motion = models.DecimalField(max_digits=10, decimal_places=8)
-    rev_num = models.IntegerField()
-    object_status = models.CharField(max_length=32, default="Operational", blank=True)
-    launch_date =  models.CharField(max_length=10, default="0000-00-00", blank=True)
-    launch_site =  models.CharField(max_length=128, default="", blank=True)
-    country = models.CharField(max_length=64, default="", blank=True)
-    type = models.CharField(max_length=16, default="satellite", blank=False)
+    rev_num = models.IntegerField(),
+    type = models.CharField(max_length=16, default="debris", blank=False)
